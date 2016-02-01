@@ -23,15 +23,19 @@ function readRequireJSModules(dirName, setResult, onError) {
                             setResult(fileName, content);
                         });
                     } else {
-                        if (fs.lstatSync(fileName).isDirectory()) {
-                            parentDir += '/' + fileName;
-                            travelDir(parentDir);
+                        if (fs.lstatSync(fileName).isDirectory() && fileName !== 'node_modules' && fileName !== '.git') {
+                            if (parentDir === '.') {
+                                parentDir = fileName;
+                                travelDir(parentDir);
+                            } else {
+                                parentDir += '/' + fileName;
+                                travelDir(parentDir);
+                            }
                         } else {
                             return;
                         }
                     }
                 });
-                directory = '';
             });
         }(dirName));
     } else {
