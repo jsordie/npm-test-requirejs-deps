@@ -1,0 +1,19 @@
+{
+  "name": "npm-test-requirejs-deps",
+  "version": "1.0.0",
+  "description": "npm package to test requirejs dependencies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "npm",
+    "requirejs",
+    "dependencies"
+  ],
+  "author": "Alberto de la Fuente",
+  "license": "MIT",
+  "devDependencies": {
+    "fs": "0.0.2"
+  }
+}
