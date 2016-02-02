@@ -1,46 +1,26 @@
 var fs = require('fs');
+var path = require('path');
+var wrench = require('wrench');
+var chalk = require('chalk');
 var data = {};
 
 function readRequireJSModules(dirName, setResult, onError) {
-    var parentDir = dirName;
+    var files = wrench.readdirSyncRecursive(dirName);
 
-    if (dirName && dirName !== 'node_modules') {
-        (function travelDir(dir) {
-            var directory = dir || dirName;
-            fs.readdir(directory, function(err, fileNames) {
-                if (err) {
-                    onError(err);
-                    return;
-                }
-
-                fileNames.forEach(function(fileName) {
-                    if (fileName.indexOf('.js') !== -1) {
-                        fs.readFile(directory + '/' + fileName, 'utf-8', function(err, content) {
-                            if (err) {
-                                onError(err);
-                                return;
-                            }
-                            setResult(fileName, content);
-                        });
-                    } else {
-                        if (fs.lstatSync(fileName).isDirectory() && fileName !== 'node_modules' && fileName !== '.git') {
-                            if (parentDir === '.') {
-                                parentDir = fileName;
-                                travelDir(parentDir);
-                            } else {
-                                parentDir += '/' + fileName;
-                                travelDir(parentDir);
-                            }
-                        } else {
-                            return;
-                        }
+    if (dirName) {
+        files.forEach(function(file) {
+            if (file.indexOf('node_modules') === -1 && file.indexOf('.git') === -1 && file.indexOf('coverage') === -1 && file.indexOf('.js') !== -1) {
+                fs.readFile(dirName + '/' + file, 'utf-8', function(err, content) {
+                    if (err) {
+                        onError(err);
+                        return;
                     }
+                    setResult(file, content);
                 });
-            });
-        }(dirName));
+            }
+        });
     } else {
-        var errorMessage = 'Your directory name is empty';
-        setError(errorMessage);
+        setError('The directory is empty');
     }
 }
 
@@ -55,6 +35,6 @@ function setError(err) {
 }
 
 module.exports = function(dirName) {
-    var dir = dirName || '.';
+    var dir = dirName || path.resolve(__dirname);
     readRequireJSModules(dir, setResult, setError);
 }
