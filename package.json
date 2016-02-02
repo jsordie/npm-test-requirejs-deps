@@ -14,6 +14,10 @@
   "author": "Alberto de la Fuente",
   "license": "MIT",
   "devDependencies": {
-    "fs": "0.0.2"
+    "fs": "0.0.2",
+    "wrench": "^1.5.8"
+  },
+  "dependencies": {
+    "chalk": "^1.1.1"
   }
 }
