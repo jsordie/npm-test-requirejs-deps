@@ -2,17 +2,17 @@ var fs = require('fs'),
     path = require('path'),
     wrench = require('wrench'),
     chalk = require('chalk'),
-    requirejs = require('requirejs'),
-    //requirejsText = require('requirejs-text'),
-    foldersToRemove = null;
+    Dependo = require('dependo'),
+    foldersToExclude,
+    configFile;
 
-function removeFolders(file) {
+function excludeFolders(file) {
     var i = 0,
-        arrLength = foldersToRemove.length,
+        arrLength = foldersToExclude.length,
         result;
 
     for (i; i < arrLength; i++) {
-        if (file.indexOf(foldersToRemove[i]) === -1) {
+        if (file.indexOf(foldersToExclude[i]) === -1) {
             result = file;
         } else {
             result = false;
@@ -26,7 +26,7 @@ function returnJSfiles(file) {
 }
 
 function readRequireJSModules(dirName, arr, setResult, onError) {
-    var files = wrench.readdirSyncRecursive(dirName).filter(returnJSfiles).filter(removeFolders);
+    var files = wrench.readdirSyncRecursive(dirName).filter(returnJSfiles).filter(excludeFolders);
 
     if (dirName) {
         files.forEach(function(file) {
@@ -40,23 +40,39 @@ function readRequireJSModules(dirName, arr, setResult, onError) {
                 });
             }
         });
-    } else {
-        setError('The directory is empty');
     }
 }
 
+function generateDependo(file) {
+    var dependo = new Dependo(file, {
+        format: 'amd',
+        requireConfig: configFile,
+        transform: function(dep) {
+            for (d in dep) {
+                if (dep.hasOwnProperty(d)) {
+                    if (dep[d].length > 0) {
+                        chalk.blue(console.log('--> ' + d + ': ' + dep[d]));
+                    }
+                }
+            }
+        }
+    });
+    dependo.generateHtml();
+}
+
 function setResult(fileName, content) {
-    if (content.indexOf('define') !== -1 || content.indexOf('require') !== -1) {
-        console.log(fileName);
+    if (content.indexOf('define(') !== -1 || content.indexOf('require(') !== -1) {
+        generateDependo(fileName);
     }
 }
 
 function setError(err) {
-    //console.log(err);
+    chalk.red(console.log(err));
 }
 
-module.exports = function(dirName, arr) {
+module.exports = function(dirName, arr, conf) {
     var dir = dirName || path.resolve(__dirname);
-    foldersToRemove = arr;
+    foldersToExclude = arr;
+    configFile = conf;
     readRequireJSModules(dir, arr, setResult, setError);
 }
