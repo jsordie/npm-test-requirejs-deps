@@ -14,12 +14,11 @@
   "author": "Alberto de la Fuente",
   "license": "MIT",
   "devDependencies": {
+    "dependo": "^0.1.6",
     "fs": "0.0.2",
     "wrench": "^1.5.8"
   },
   "dependencies": {
-    "chalk": "^1.1.1",
-    "requirejs": "^2.1.22",
-    "requirejs-text": "^2.0.12"
+    "chalk": "^1.1.1"
   }
 }
