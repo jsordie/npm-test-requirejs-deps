@@ -13,7 +13,7 @@ var fs = require('fs'),
  * @return {String}
  */
 function excludeFolders(file) {
-    return (foldersToExclude.indexOf(file) === -1) ? file : false;
+    return (foldersToExclude.length > 0 && foldersToExclude.indexOf(file) === -1) ? file : false;
 }
 
 /**
@@ -64,10 +64,8 @@ function generateDependo(file) {
             requireConfig: configFile,
             transform: function(dep) {
                 for (d in dep) {
-                    if (dep[d]) {
-                        if (dep[d].length > 0) {
-                            chalk.blue(console.log('--> ' + d + ': ' + dep[d]));
-                        }
+                    if (dep[d] && dep[d].length > 0) {
+                        chalk.blue(console.log('--> ' + d + ': ' + dep[d]));
                     }
                 }
             }
@@ -105,7 +103,7 @@ function setError(err) {
  */
 module.exports = function(dirName, arr, conf) {
     var dir = dirName || path.resolve(__dirname);
-    foldersToExclude = arr;
-    configFile = conf;
+    foldersToExclude = arr || [];
+    configFile = conf || '';
     readRequireJSModules(dir, arr, setResult, setError);
 }
