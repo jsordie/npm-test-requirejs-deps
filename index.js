@@ -9,34 +9,29 @@ var fs = require('fs'),
 /**
  * excludeFolders
  * method to exclude directories or files
- * @param  {string} file
- * @return {string}
+ * @param  {String} file
+ * @return {String}
  */
 function excludeFolders(file) {
-    var result = false;
-
-    foldersToExclude.map(function(f) {
-        (file.indexOf(f) === -1 && !result) ? result = file: result = false;
-    });
-    return (result) ? result : false;
+    return (foldersToExclude.indexOf(file) === -1) ? file : false;
 }
 
 /**
  * returnJSfiles
  * method that returns only js files
- * @param  {string} file
- * @return {string}
+ * @param  {String} file
+ * @return {String}
  */
 function returnJSfiles(file) {
-    return (file.indexOf('.json') === -1 && file.indexOf('.jsq') === -1 && file.indexOf('node_modules') === -1 && file.indexOf('.git') === -1 && file.indexOf('.js') !== -1) ? file : false;
+    return (file.indexOf('.json') === -1 && file.indexOf('.jsq') === -1 && file.indexOf('node_modules') === -1 && file.indexOf('.git') === -1 && file.indexOf('coverage') === -1 && file.indexOf('.js') !== -1) ? file : false;
 }
 
 /**
  * readRequireJSModules
- * @param  {string} dirName   [folfer name]
- * @param  {array}  arr       [array of folders or files to exclude]
- * @param  {object} setResult [setResult method]
- * @param  {object} onError   [setError method]
+ * @param  {String} dirName   [folfer name]
+ * @param  {Array}  arr       [array of folders or files to exclude]
+ * @param  {Function} setResult [setResult method]
+ * @param  {Function} onError   [setError method]
  */
 function readRequireJSModules(dirName, arr, setResult, onError) {
     var files = wrench.readdirSyncRecursive(dirName).filter(returnJSfiles).filter(excludeFolders);
@@ -49,7 +44,7 @@ function readRequireJSModules(dirName, arr, setResult, onError) {
                         onError(err);
                         return;
                     }
-                    setResult(file, content);
+                    setResult(file, content, generateDependo);
                 });
             }
         });
@@ -59,16 +54,17 @@ function readRequireJSModules(dirName, arr, setResult, onError) {
 /**
  * generateDependo
  * Show dependo result
- * @param  {string} file
+ * @param  {String} file
  */
 function generateDependo(file) {
+    console.log(file);
     if (file) {
         var dependo = new Dependo(file, {
             format: 'amd',
             requireConfig: configFile,
             transform: function(dep) {
                 for (d in dep) {
-                    if (dep.hasOwnProperty(d)) {
+                    if (dep[d]) {
                         if (dep[d].length > 0) {
                             chalk.blue(console.log('--> ' + d + ': ' + dep[d]));
                         }
@@ -83,28 +79,29 @@ function generateDependo(file) {
 /**
  * setResult
  * Check that the module is created as a RequireJS module
- * @param {string} fileName
- * @param {string} content  [file content]
+ * @param {String} fileName
+ * @param {String} content  [file content]
+ * @param {Function} callback [generateDependo method]
  */
-function setResult(fileName, content) {
+function setResult(fileName, content, callback) {
     if (content.indexOf('define(') !== -1 || content.indexOf('require(') !== -1) {
-        generateDependo(fileName);
+        callback(fileName);
     }
 }
 
 /**
  * setError
  * Show the error in console
- * @param {string} err [error text]
+ * @param {String} err [error text]
  */
 function setError(err) {
     chalk.red(console.log(err));
 }
 
 /**
- * @param  {string} dirName [folfer name]
- * @param  {array}  arr     [array of folders or files to exclude]
- * @param  {string} conf    [requirejs config file]
+ * @param  {String} dirName [folfer name]
+ * @param  {Array}  arr     [array of folders or files to exclude]
+ * @param  {String} conf    [requirejs config file]
  */
 module.exports = function(dirName, arr, conf) {
     var dir = dirName || path.resolve(__dirname);
