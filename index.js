@@ -29,7 +29,7 @@ function readRequireJSModules(dirName, arr, setResult, setError, generateDependo
                 });
             }
         });
-        generateDependo(files);
+        generateDependo(files, setError);
     }
 }
 
@@ -38,7 +38,7 @@ function readRequireJSModules(dirName, arr, setResult, setError, generateDependo
  * Show dependo result
  * @param  {String} file
  */
-function generateDependo(files) {
+function generateDependo(files, setError) {
     var html, dependo;
     if (files.length > 0) {
         dependo = new Dependo(files, {
@@ -55,9 +55,11 @@ function generateDependo(files) {
                 return dep;
             }
         });
+        html = dependo.generateHtml();
+        exportHtml(html, setError);
+    } else {
+        setError('No files to generate a report');
     }
-    html = dependo.generateHtml();
-    exportHtml(html, setError);
 }
 
 /**
