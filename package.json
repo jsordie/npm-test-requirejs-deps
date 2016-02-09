@@ -13,13 +13,11 @@
   ],
   "author": "Alberto de la Fuente",
   "license": "MIT",
-  "devDependencies": {
+  "devDependencies": {},
+  "dependencies": {
     "dependo": "^0.1.6",
     "fs": "0.0.2",
     "mkdirp": "^0.5.1",
     "wrench": "^1.5.8"
-  },
-  "dependencies": {
-    "chalk": "^1.1.1"
   }
 }
