@@ -3,7 +3,6 @@
 var fs = require('fs'),
     path = require('path'),
     wrench = require('wrench'),
-    chalk = require('chalk'),
     Dependo = require('dependo'),
     mkdirp = require('mkdirp');
 
@@ -49,7 +48,7 @@ function generateDependo(files, depObj) {
                 var d;
                 for (d in dep) {
                     if (dep[d] && dep[d].length > 0) {
-                        chalk.blue(console.log('--> ' + d + ': ' + dep[d]));
+                        console.log('--> ' + d + ': ' + dep[d]);
                     }
                 }
                 return dep;
@@ -100,7 +99,7 @@ function setResult(fileName, content, depObj) {
  * @param {String} err [error text]
  */
 function setError(err) {
-    chalk.red(console.log(err));
+    console.log(err);
 }
 
 /**
