@@ -1,35 +1,33 @@
+'use strict';
+
 var fs = require('fs'),
     path = require('path'),
     wrench = require('wrench'),
     chalk = require('chalk'),
     Dependo = require('dependo'),
-    mkdirp = require('mkdirp'),
-    foldersToExclude,
-    configFile;
+    mkdirp = require('mkdirp');
 
 /**
  * readRequireJSModules
- * @param  {String} dirName     [folfer name]
- * @param  {Array}  arr         [array of folders or files to exclude]
- * @param  {Function} setResult [setResult method]
- * @param  {Function} setError  [setError method]
- * @param  {Function} generateDependo [generateDependo method]
+ * @param  {Object} depObj
  */
-function readRequireJSModules(dirName, arr, setResult, setError, generateDependo) {
-    var files = wrench.readdirSyncRecursive(dirName).filter(returnJSfiles).filter(excludeFolders);
+function readRequireJSModules(depObj) {
+    var files = wrench.readdirSyncRecursive(depObj.dirName).filter(depObj.returnJSfiles).filter(function(file) {
+        return depObj.excludeFolders(file, depObj);
+    });
 
-    if (dirName) {
+    if (depObj.dirName) {
         files.forEach(function(file) {
             if (file.indexOf('.js') !== -1) {
-                fs.readFile(dirName + '/' + file, 'utf-8', function(err, content) {
+                fs.readFile(depObj.dirName + '/' + file, 'utf-8', function(err, content) {
                     if (err) {
-                        setError(err);
+                        depObj.setError(err);
                     }
-                    setResult(file, content, setError);
+                    depObj.setResult(file, content, depObj);
                 });
             }
         });
-        generateDependo(files, setError);
+        depObj.generateDependo(files, depObj);
     }
 }
 
@@ -37,16 +35,18 @@ function readRequireJSModules(dirName, arr, setResult, setError, generateDependo
  * generateDependo
  * Show dependo result
  * @param  {String} file
+ * @param  {Object} depObj
  */
-function generateDependo(files, setError) {
+function generateDependo(files, depObj) {
     var html, dependo;
     if (files.length > 0) {
         dependo = new Dependo(files, {
             format: 'amd',
-            requireConfig: configFile,
+            requireConfig: depObj.configFile,
             title: 'Project Depenedencies',
             exclude: '^node_modules',
             transform: function(dep) {
+                var d;
                 for (d in dep) {
                     if (dep[d] && dep[d].length > 0) {
                         chalk.blue(console.log('--> ' + d + ': ' + dep[d]));
@@ -56,9 +56,9 @@ function generateDependo(files, setError) {
             }
         });
         html = dependo.generateHtml();
-        exportHtml(html, setError);
+        depObj.exportHtml(html, depObj);
     } else {
-        setError('No files to generate a report');
+        depObj.setError('No files to generate a report');
     }
 }
 
@@ -66,15 +66,15 @@ function generateDependo(files, setError) {
  * exportHtml
  * Generates an HTML file in the directory ./requirejsDeps
  * @param  {String} content [HTML content]
- * @param  {Function} setError [setError method]
+ * @param  {Object} depObj
  */
-function exportHtml(content, setError) {
+function exportHtml(content, depObj) {
     mkdirp('./requirejsDeps', function(err) {
         if (err) {
-            setError(err);
+            depObj.setError(err);
         } else {
             fs.writeFile('./requirejsDeps/index.html', content, function(err) {
-                if (err) setError(err);
+                if (err) depObj.setError(err);
             });
         }
     });
@@ -85,10 +85,9 @@ function exportHtml(content, setError) {
  * Check that the module is created as a RequireJS module
  * @param {String} fileName   [file name]
  * @param {String} content    [file content]
- * @param {Function} callback [generateDependo method]
- * @param {Function} setError [setError method]
+ * @param {Object} depObj
  */
-function setResult(fileName, content, setError) {
+function setResult(fileName, content, depObj) {
     var depArr = {};
     if (content.indexOf('define(') !== -1 || content.indexOf('require(') !== -1) {
         depArr[fileName] = content;
@@ -108,10 +107,11 @@ function setError(err) {
  * excludeFolders
  * method to exclude directories or files
  * @param  {String} file
+ * @param  {Object} depObj
  * @return {String} file | false
  */
-function excludeFolders(file) {
-    return (foldersToExclude.length > 0 && foldersToExclude.indexOf(file) === -1) ? file : false;
+function excludeFolders(file, depObj) {
+    return (depObj.foldersToExclude.length > 0 && depObj.foldersToExclude.indexOf(file) === -1) ? file : false;
 }
 
 /**
@@ -131,8 +131,16 @@ function returnJSfiles(file) {
  * @param  {String} conf    [requirejs config file]
  */
 module.exports = function(dirName, arr, conf) {
-    var dir = dirName || path.resolve(__dirname);
-    foldersToExclude = arr || [];
-    configFile = conf || '';
-    readRequireJSModules(dir, arr, setResult, setError, generateDependo);
+    var depObj = {
+        dirName: dirName || path.resolve(__dirname),
+        foldersToExclude: arr || [],
+        configFile: conf || '',
+        setResult: setResult,
+        setError: setError,
+        generateDependo: generateDependo,
+        excludeFolders: excludeFolders,
+        returnJSfiles: returnJSfiles,
+        exportHtml: exportHtml
+    };
+    readRequireJSModules(depObj);
 }
