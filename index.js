@@ -110,7 +110,7 @@ function setError(err) {
  * @return {String} file | false
  */
 function excludeFolders(file, depObj) {
-    return (depObj.foldersToExclude.length > 0 && depObj.foldersToExclude.indexOf(file) === -1) ? file : false;
+    return depObj.foldersToExclude.length > 0 && depObj.foldersToExclude.indexOf(file) === -1 ? file : false;
 }
 
 /**
@@ -120,7 +120,7 @@ function excludeFolders(file, depObj) {
  * @return {String} file | false
  */
 function returnJSfiles(file) {
-    return (file.indexOf('.json') === -1 && file.indexOf('.jsq') === -1 && file.indexOf('node_modules') === -1 && file.indexOf('.git') === -1 && file.indexOf('coverage') === -1 && file.indexOf('.js') !== -1) ? file : false;
+    return file.indexOf('.json') === -1 && file.indexOf('.jsq') === -1 && file.indexOf('node_modules') === -1 && file.indexOf('.git') === -1 && file.indexOf('coverage') === -1 && file.indexOf('.js') !== -1 ? file : false;
 }
 
 /**
